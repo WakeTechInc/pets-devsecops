@@ -32,6 +32,17 @@ class TestApp(unittest.TestCase):
         mock_query_instance.all.return_value = dogs
         return mock_query_instance
 
+    def test_direct_startup_disables_debug(self):
+        import os
+        from pathlib import Path
+        import runpy
+
+        with patch.dict(os.environ, {'DATABASE_PATH': ':memory:', 'FLASK_DEBUG': '1'}):
+            with patch('flask.Flask.run') as run:
+                runpy.run_path(str(Path(__file__).with_name('app.py')), run_name='__main__')
+
+        run.assert_called_once_with(debug=False, port=5100)
+
     @patch('app.db.session.query')
     def test_get_dogs_success(self, mock_query):
         """Test successful retrieval of multiple dogs"""
